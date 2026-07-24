@@ -1,0 +1,83 @@
+services:
+  # Web server: receives HTTP traffic on port 8080 and forwards
+  # PHP requests to the php-fpm container via FastCGI.
+  nginx:
+    image: nginx:alpine
+    container_name: devmind-nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80" # host:container -> http://localhost:8080
+    volumes:
+      - ./backend:/var/www/html # app source code, shared with the php container
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro # vhost (fastcgi_pass php:9000)
+    depends_on:
+      - php
+    networks:
+      - devmind
+
+  # Application runtime: PHP-FPM built from a custom Dockerfile.
+  # No published ports — only nginx talks to it.
+  php:
+    build:
+      context: . # project root, so the Dockerfile can copy any file (needs .dockerignore)
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000} # mirrors the host user so storage/ stays writable
+        GID: ${GID:-1000}
+    container_name: devmind-php
+    restart: unless-stopped
+    working_dir: /var/www/html # default dir for `docker compose exec php ...`
+    volumes:
+      - ./backend:/var/www/html # live code mount: edits on the host apply instantly
+    depends_on:
+      postgres:
+        condition: service_healthy # actually waits for pg_isready
+      redis:
+        condition: service_started
+    networks:
+      - devmind
+
+  # Primary database. Reachable from other containers at host "postgres", port 5432.
+  postgres:
+    image: postgres:17-alpine
+    container_name: devmind-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-devmind} # database created on first boot
+      POSTGRES_USER: ${DB_USERNAME:-devmind}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret} # dev only — use a secret in production
+    ports:
+      - "5432:5432" # exposed to the host for GUI clients (DBeaver, TablePlus...)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # named volume: survives container removal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-devmind} -d ${DB_DATABASE:-devmind}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - devmind
+
+  # Cache, sessions and queues. AOF enabled so pending jobs survive a restart.
+  redis:
+    image: redis:7-alpine
+    container_name: devmind-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379" # exposed to the host for redis-cli / Redis Insight
+    volumes:
+      - redis_data:/data
+    networks:
+      - devmind
+
+# Shared bridge network: containers resolve each other by service name
+# (e.g. the app connects to DB_HOST=postgres, REDIS_HOST=redis).
+networks:
+  devmind:
+
+# Named volumes managed by Docker, persist across `docker compose down`
+# (removed only with `docker compose down -v`).
+volumes:
+  postgres_data:
+  redis_data:

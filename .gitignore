@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+.env
+/backend/.env
+/backend/vendor
+/backend/node_modules
+/frontend/node_modules
+/frontend/dist
+.DS_Store
