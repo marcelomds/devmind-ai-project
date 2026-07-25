@@ -47,7 +47,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-devmind}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret} # dev only — use a secret in production
     ports:
-      - "5432:5432" # exposed to the host for GUI clients (DBeaver, TablePlus...)
+      - "${POSTGRES_PORT}:5432" # exposed to the host for GUI clients (DBeaver, TablePlus...)
     volumes:
       - postgres_data:/var/lib/postgresql/data # named volume: survives container removal
     healthcheck:
