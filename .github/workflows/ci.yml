@@ -1,0 +1,145 @@
+# The name that appears in the "Actions" tab on GitHub and in the checkmarks of each PR.
+name: CI
+
+# ── TRIGGER ─────────────────────────────────────────────────────────────
+# When this workflow runs. Here: with each push to main and each Pull Request
+# that points to main. This way you see the green/red check before merging.
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+# ═══════════════════════════════════════════════════════════════════════════
+# JOB 1 — BACKEND (Laravel)
+
+# Runs on an Ubuntu machine Clean it up. Start Postgres and Redis as "services"
+
+# (same concept as docker-compose), install PHP, and run the tests.
+
+# ══════════════════════════════════════════════════════════════════════════
+    backend:
+        name: Backend (Laravel)
+        runs-on: ubuntu-latest
+
+        # Default directory for this job's commands: Laravel lives in ./backend.
+        defaults:
+            run:
+                working-directory: backend
+
+ # ── SERVICES ──────────────────────────────────────────────────────────
+    # Containers que sobem AO LADO do job, na mesma máquina. Igual aos
+    # `services:` do teu docker-compose. A diferença: como o app roda direto
+    # no runner (não em container), ele acessa esses serviços por 127.0.0.1,
+    # nas portas que mapeamos abaixo — NÃO por "postgres"/"redis".
+        services:
+            postgres:
+                image: postgres:17-alpine
+                env:
+                    POSTGRES_DB: devmind_test
+                    POSTGRES_USER: devmind
+                    POSTGRES_PASSWORD: secret
+                ports:
+                - 5432:5432
+                # Healthcheck: o job espera o Postgres ficar pronto antes de seguir.
+                options: >-
+                --health-cmd="pg_isready -U devmind"
+                --health-interval=5s
+                --health-timeout=5s
+                --health-retries=10
+        
+            redis:
+                image: redis:7-alpine
+                ports:
+                - 6379:6379
+                options: >-
+                --health-cmd="redis-cli ping"
+                --health-interval=5s
+                --health-timeout=5s
+                --health-retries=10
+        
+        steps:
+            # Download the code from the repository into the runner.
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            # Install PHP 8.3 along with the extensions that your Dockerfile also installs.
+            # (setup-php is the community's default action for this.)
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                php-version: '8.3'
+                extensions: pdo, pdo_pgsql, redis, intl, bcmath, zip
+                coverage: none
+
+            # Caching Composer dependencies to make CI faster in subsequent rounds.
+            - name: Cache Composer
+              uses: actions/cache@v4
+              with:
+                path: backend/vendor
+                key: composer-${{ hashFiles('backend/composer.lock') }}
+
+            - name: Install dependencies
+              run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+            # Recreate the environment: copy the .env.example file and generate the APP_KEY.
+            # In CI, your .env file doesn't exist (it never goes to Git), so we created one.
+            - name: Prepare environment
+              run: |
+                cp .env.example .env
+                php artisan key:generate
+
+                 # Roda os testes. As variáveis aqui SOBRESCREVEM o .env só pra este passo,
+
+            # pointing to services via 127.0.0.1 and forcing the "fake" AI driver
+            # (nenhum teste gasta a chave da OpenAI).
+            - name: Run tests
+              env:
+                DB_CONNECTION: pgsql
+                DB_HOST: 127.0.0.1
+                DB_PORT: 5432
+                DB_DATABASE: devmind_test
+                DB_USERNAME: devmind
+                DB_PASSWORD: secret
+                REDIS_HOST: 127.0.0.1
+                REDIS_PORT: 6379
+                CACHE_STORE: redis
+                QUEUE_CONNECTION: sync
+                AI_PROVIDER: fake
+              run: php artisan test
+
+# ══════════════════════════════════════════════════════════════════════════
+# JOB 2 — FRONTEND (React + TypeScript)
+# Runs in parallel with the backend. Lint, type checking, and build.
+# ══════════════════════════════════════════════════════════════════════════
+    frontend:
+      name: Frontend (React)
+      runs-on: ubuntu-latest
+ 
+    defaults:
+      run:
+        working-directory: frontend
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+ 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+ 
+      # npm ci = install clean and reproducible from the package-lock (ideal for CI).
+      - name: Install dependencies
+        run: npm ci
+ 
+      - name: Lint
+        run: npm run lint
+  
+      - name: Build
+        run: npm run build
+
+                    
