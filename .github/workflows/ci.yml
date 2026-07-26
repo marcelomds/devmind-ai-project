@@ -79,6 +79,20 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      # Migrate the test database. RefreshDatabase alone is not reliable here:
+      # this runs against the real Postgres service, so the schema must exist
+      # before any test starts (each artisan invocation is its own process,
+      # so the env vars must be repeated on every step that touches the DB).
+      - name: Run migrations
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: devmind_test
+          DB_USERNAME: devmind
+          DB_PASSWORD: secret
+        run: php artisan migrate --force
+
       # Run the tests. The variables here OVERRIDE the .env for this step only,
       # pointing to the services via 127.0.0.1 and forcing the "fake" AI driver
       # (no test spends the OpenAI key).
