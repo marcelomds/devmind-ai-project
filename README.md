@@ -4,6 +4,7 @@
 
 ### Continuous AI-powered code intelligence — a health monitor for your codebase.
 
+![CI](https://github.com/marcelomds/devmind-ai-project/actions/workflows/ci.yml/badge.svg)
 [![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -63,9 +64,9 @@ It's worth separating the **vision** (above) from the **present state**, so the 
 
 What exists and works **today** is the foundation and the skeleton — not the product features yet:
 
-- ✅ A complete **Docker infrastructure**: web server (Nginx), application (Laravel/PHP-FPM), database (PostgreSQL) and Redis (which will manage the analysis queue). All wired together and validated.
-- ✅ A responding **REST API** with a React screen confirming *"API Online"* — proof that backend and frontend communicate end to end.
-- 🔨 The **database schema** (four tables: repositories, analyses, findings, users) — the design of where each piece of data lives. *In progress.*
+- ✅ A complete **Docker infrastructure**: ...
+- ✅ A responding **REST API** with a React screen ...
+- ✅ The **database schema** (repositories, analyses, findings, users) and an **asynchronous AI analysis engine** with a provider-agnostic layer (OpenAI + Fake driver), validated by tests running in CI.
 
 ## 🗺️ Roadmap
 
@@ -78,9 +79,9 @@ Make the core beat: receive code (pasted manually at first), send it to the AI, 
 - [x] Versioned REST API (`/api/v1`)
 - [x] React + TypeScript frontend with a layered architecture
 - [x] End-to-end health check integration
-- [ ] Domain schema (repositories, analyses, findings)
-- [ ] Asynchronous AI analysis via Redis queue
-- [ ] Structured findings from an AI provider (OpenAI)
+- [x] Domain schema (repositories, analyses, findings)
+- [x] Asynchronous AI analysis via Redis queue
+- [x] Structured findings from an AI provider (OpenAI)
 
 **Phase 2 — The Dashboard**
 Show those analyses and the quality trend on a polished screen.
@@ -100,7 +101,7 @@ Replace manual input with a real connection to Pull Requests via webhook.
 Wrap it up: each user sees only their own repositories, and ship it.
 
 - [ ] Authentication (Laravel Sanctum)
-- [ ] CI/CD pipeline with GitHub Actions
+- [x] CI pipeline with GitHub Actions (tests, lint, build)
 - [ ] Deployment to AWS (ECR → ECS/EC2)
 
 ---
