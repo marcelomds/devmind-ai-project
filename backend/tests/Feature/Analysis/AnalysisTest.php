@@ -4,10 +4,12 @@ namespace Tests\Feature\Analysis;
 
 use App\Enums\AnalysisStatus\AnalysisStatus;
 use App\Models\Analysis\Analysis;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AnalysisTest extends TestCase
 {
+    use RefreshDatabase;
 
     public function test_it_creates_an_analysis_and_completes_it_with_fake_findings(): void
     {

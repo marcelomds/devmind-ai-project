@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Analysis;
 
 use App\Enums\AnalyzerType\AnalyzerType;
 use Illuminate\Foundation\Http\FormRequest;
@@ -17,6 +17,7 @@ class StoreAnalysisRequest extends FormRequest
     {
         $this->merge([
             'analyzer' => $this->input('analyzer', AnalyzerType::Quality->value),
+            'language' => $this->input('language', config('ai.language')),
         ]);
     }
 
@@ -25,6 +26,7 @@ class StoreAnalysisRequest extends FormRequest
         return [
             'input_code' => ['required', 'string'],
             'analyzer' => ['required', Rule::enum(AnalyzerType::class)],
+            'language' => ['required', 'string', Rule::in(['en', 'pt-BR'])],
         ];
     }
 }

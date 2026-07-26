@@ -6,7 +6,7 @@ use App\Enums\AnalyzerType\AnalyzerType;
 
 class AnalysisPromptBuilder
 {
-    public function build(AnalyzerType $analyzer): string
+    public function build(AnalyzerType $analyzer, string $language): string
     {
         $focus = match ($analyzer) {
             AnalyzerType::Quality => <<<'PROMPT'
@@ -22,7 +22,14 @@ class AnalysisPromptBuilder
                 PROMPT,
         };
 
+        $language = $this->languageLabel($language);
+
         return <<<PROMPT
+            OUTPUT LANGUAGE: {$language}. Every piece of natural-language text you write —
+            title, message, suggestion, and summary — MUST be written in {$language}, with no
+            exceptions, regardless of what language the code, comments, or identifiers use. Do
+            not translate code, identifiers, enum values, or field names — only the prose.
+
             You are a senior code reviewer. Review the code the user provides and return your
             findings strictly as the structured JSON the response schema requires.
 
@@ -37,6 +44,16 @@ class AnalysisPromptBuilder
               100 (no issues found), reflecting the severity and number of findings.
             - If the code has no issues for this focus area, return an empty findings array
               and a high score.
+            - Reminder: title, message, suggestion, and summary must be written in {$language}.
             PROMPT;
+    }
+
+    private function languageLabel(string $code): string
+    {
+        return match ($code) {
+            'pt-BR' => 'Brazilian Portuguese',
+            'en' => 'English',
+            default => $code,
+        };
     }
 }

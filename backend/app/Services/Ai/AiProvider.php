@@ -7,5 +7,5 @@ use App\Services\Ai\Data\AnalysisResult;
 
 interface AiProvider
 {
-    public function analyze(string $code, AnalyzerType $analyzer): AnalysisResult;
+    public function analyze(string $code, AnalyzerType $analyzer, string $language): AnalysisResult;
 }

@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Analysis;
 
 use App\Enums\AnalysisStatus\AnalysisStatus;
 use App\Models\Analysis\Analysis;
+use App\Repositories\Finding\FindingRepositoryInterface;
 use App\Services\Ai\AiProvider;
 use App\Services\Ai\Exceptions\AiRefusalException;
 use Illuminate\Bus\Queueable;
@@ -25,9 +26,10 @@ class RunAnalysis implements ShouldQueue
 
     public function __construct(
         public readonly Analysis $analysis,
+        public readonly string $language,
     ) {}
 
-    public function handle(AiProvider $ai): void
+    public function handle(AiProvider $ai, FindingRepositoryInterface $findings): void
     {
         $this->analysis->update([
             'status' => AnalysisStatus::Processing,
@@ -35,14 +37,14 @@ class RunAnalysis implements ShouldQueue
         ]);
 
         try {
-            $result = $ai->analyze($this->analysis->input_code, $this->analysis->analyzer);
+            $result = $ai->analyze($this->analysis->input_code, $this->analysis->analyzer, $this->language);
         } catch (AiRefusalException $e) {
             $this->fail($e);
 
             return;
         }
 
-        $this->analysis->findings()->createMany(array_map(fn ($finding) => [
+        $findings->createMany($this->analysis, array_map(fn ($finding) => [
             'severity' => $finding->severity,
             'category' => $finding->category,
             'title' => $finding->title,

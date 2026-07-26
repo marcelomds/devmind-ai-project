@@ -22,7 +22,7 @@ class OpenAiProvider implements AiProvider
         private readonly int $timeout,
     ) {}
 
-    public function analyze(string $code, AnalyzerType $analyzer): AnalysisResult
+    public function analyze(string $code, AnalyzerType $analyzer, string $language): AnalysisResult
     {
         try {
             $response = Http::withToken($this->apiKey)
@@ -30,7 +30,7 @@ class OpenAiProvider implements AiProvider
                 ->post("{$this->baseUrl}/chat/completions", [
                     'model' => $this->model,
                     'messages' => [
-                        ['role' => 'system', 'content' => $this->promptBuilder->build($analyzer)],
+                        ['role' => 'system', 'content' => $this->promptBuilder->build($analyzer, $language)],
                         ['role' => 'user', 'content' => $code],
                     ],
                     'response_format' => $this->responseFormat(),

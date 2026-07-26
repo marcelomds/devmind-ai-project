@@ -9,7 +9,7 @@ use App\Services\Ai\Data\FindingData;
 
 class FakeAiProvider implements AiProvider
 {
-    public function analyze(string $code, AnalyzerType $analyzer): AnalysisResult
+    public function analyze(string $code, AnalyzerType $analyzer, string $language): AnalysisResult
     {
         return new AnalysisResult(
             score: 72,

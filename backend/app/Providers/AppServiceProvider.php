@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Repositories\Analysis\AnalysisRepository;
+use App\Repositories\Analysis\AnalysisRepositoryInterface;
+use App\Repositories\Finding\FindingRepository;
+use App\Repositories\Finding\FindingRepositoryInterface;
 use App\Services\Ai\AiProvider;
 use App\Services\Ai\AnalysisPromptBuilder;
 use App\Services\Ai\FakeAiProvider;
@@ -27,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
                 ),
             };
         });
+
+        $this->app->bind(AnalysisRepositoryInterface::class, AnalysisRepository::class);
+        $this->app->bind(FindingRepositoryInterface::class, FindingRepository::class);
     }
 
     /**
