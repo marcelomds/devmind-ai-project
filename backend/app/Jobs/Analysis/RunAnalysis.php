@@ -27,7 +27,9 @@ class RunAnalysis implements ShouldQueue
     public function __construct(
         public readonly Analysis $analysis,
         public readonly string $language,
-    ) {}
+    ) {
+        $this->onQueue('analysis');
+    }
 
     public function handle(AiProvider $ai, FindingRepositoryInterface $findings): void
     {
