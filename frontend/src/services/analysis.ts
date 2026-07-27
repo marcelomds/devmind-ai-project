@@ -1,5 +1,5 @@
 import { apiGet, apiPost } from "./api";
-import type { Analysis, AnalyzerType, Finding, Language } from "../types/analysis";
+import type { Analysis, AnalysisSource, AnalyzerType, Finding, Language } from "../types/analysis";
 
 // The API (AnalysisResource/FindingResource) returns snake_case fields and
 // wraps the payload in a top-level "data" key. These Raw* shapes mirror the
@@ -21,8 +21,14 @@ interface RawAnalysis {
   uuid: string;
   analyzer: AnalyzerType;
   status: Analysis["status"];
+  source_type: AnalysisSource;
+  pr_number: number | null;
+  commit_sha: string | null;
+  repository_full_name: string | null;
   score: number | null;
   summary: string | null;
+  error_message: string | null;
+  created_at: string;
   findings?: RawFinding[];
 }
 
@@ -45,8 +51,14 @@ function mapAnalysis(raw: RawAnalysis): Analysis {
     uuid: raw.uuid,
     analyzer: raw.analyzer,
     status: raw.status,
+    sourceType: raw.source_type,
+    prNumber: raw.pr_number,
+    commitSha: raw.commit_sha,
+    repositoryFullName: raw.repository_full_name,
     score: raw.score,
     summary: raw.summary,
+    errorMessage: raw.error_message,
+    createdAt: raw.created_at,
     findings: (raw.findings ?? []).map(mapFinding),
   };
 }
@@ -69,4 +81,11 @@ export async function getAnalysis(uuid: string): Promise<Analysis> {
   const response = await apiGet<{ data: RawAnalysis }>(`/analyses/${uuid}`);
 
   return mapAnalysis(response.data);
+}
+
+export async function listAnalyses(sourceType: AnalysisSource): Promise<Analysis[]> {
+  const params = new URLSearchParams({ source_type: sourceType });
+  const response = await apiGet<{ data: RawAnalysis[] }>(`/analyses?${params}`);
+
+  return response.data.map(mapAnalysis);
 }

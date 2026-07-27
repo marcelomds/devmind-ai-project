@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useAnalysis } from "../../hooks/useAnalysis";
 import type { AnalyzerType } from "../../types/analysis";
+import { formatLocation } from "./formatLocation";
 import { severityStyles } from "./severity";
 
 // Findings are generated in English for now; no language picker in the UI.
@@ -11,13 +12,6 @@ const ANALYZERS: { value: AnalyzerType; label: string }[] = [
   { value: "quality", label: "Quality" },
   { value: "docs", label: "Docs" },
 ];
-
-function formatLocation(filePath: string | null, lineStart: number | null, lineEnd: number | null) {
-  if (!filePath) return null;
-  if (!lineStart) return filePath;
-  if (lineEnd && lineEnd !== lineStart) return `${filePath}:${lineStart}-${lineEnd}`;
-  return `${filePath}:${lineStart}`;
-}
 
 export function AnalysisScreen() {
   const [code, setCode] = useState("");

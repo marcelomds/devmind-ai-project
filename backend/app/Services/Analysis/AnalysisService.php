@@ -8,6 +8,7 @@ use App\Enums\AnalyzerType\AnalyzerType;
 use App\Jobs\Analysis\RunAnalysis;
 use App\Models\Analysis\Analysis;
 use App\Repositories\Analysis\AnalysisRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AnalysisService
 {
@@ -32,5 +33,10 @@ class AnalysisService
     public function findByUuid(string $uuid): Analysis
     {
         return $this->repository->findByUuid($uuid);
+    }
+
+    public function getAll(array $filters, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->repository->paginate($filters, $perPage);
     }
 }

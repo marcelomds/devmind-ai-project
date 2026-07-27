@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources\Analysis;
 
+use App\Models\Analysis\Analysis;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Models\Analysis\Analysis */
+/** @mixin Analysis */
 class AnalysisResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -17,6 +18,7 @@ class AnalysisResource extends JsonResource
             'source_type' => $this->source_type->value,
             'pr_number' => $this->pr_number,
             'commit_sha' => $this->commit_sha,
+            'repository_full_name' => $this->whenLoaded('repository', fn () => $this->repository?->full_name),
             'summary' => $this->summary,
             'score' => $this->score,
             'error_message' => $this->error_message,

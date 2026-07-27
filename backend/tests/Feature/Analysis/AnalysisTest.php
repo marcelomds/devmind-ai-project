@@ -2,8 +2,11 @@
 
 namespace Tests\Feature\Analysis;
 
+use App\Enums\AnalysisSource\AnalysisSource;
 use App\Enums\AnalysisStatus\AnalysisStatus;
+use App\Enums\AnalyzerType\AnalyzerType;
 use App\Models\Analysis\Analysis;
+use App\Models\Repository\Repository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -36,5 +39,27 @@ class AnalysisTest extends TestCase
         $show->assertStatus(200)
             ->assertJsonPath('data.status', 'completed')
             ->assertJsonCount(3, 'data.findings');
+    }
+
+    public function test_it_lists_analyses_with_the_source_repository_full_name(): void
+    {
+        $repository = Repository::create([
+            'github_id' => 1, 'name' => 'widgets', 'full_name' => 'acme/widgets', 'is_active' => true,
+        ]);
+
+        Analysis::create([
+            'repository_id' => $repository->id,
+            'analyzer' => AnalyzerType::Quality,
+            'status' => AnalysisStatus::Completed,
+            'source_type' => AnalysisSource::PullRequest,
+            'pr_number' => 7,
+            'input_code' => '<?php echo "hi";',
+        ]);
+
+        $response = $this->getJson('/api/v1/analyses?source_type=pull_request');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.repository_full_name', 'acme/widgets')
+            ->assertJsonPath('data.0.pr_number', 7);
     }
 }

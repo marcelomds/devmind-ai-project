@@ -18,11 +18,19 @@ export interface Finding {
   lineEnd: number | null;
 }
 
+export type AnalysisSource = "manual" | "pull_request";
+
 export interface Analysis {
   uuid: string;
   analyzer: AnalyzerType;
   status: AnalysisStatus;
+  sourceType: AnalysisSource;
+  prNumber: number | null;
+  commitSha: string | null;
+  repositoryFullName: string | null;
   score: number | null;
   summary: string | null;
+  errorMessage: string | null;
+  createdAt: string;
   findings: Finding[];
 }

@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\V1\Analysis\AnalysisController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/analyses', [AnalysisController::class, 'index'])
+    ->name('analyses.index');
+
 Route::post('/analyses', [AnalysisController::class, 'store'])
     ->name('analyses.store');
 
