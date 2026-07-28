@@ -29,12 +29,18 @@ class GithubWebhookController extends Controller
             return response()->json(null, Response::HTTP_NO_CONTENT);
         }
 
+        $prAuthor = $payload['pull_request']['user'] ?? [];
+
         $analysis = $this->webhookService->handlePullRequest(
             githubId: (int) $payload['repository']['id'],
             fullName: (string) $payload['repository']['full_name'],
             prNumber: (int) $payload['pull_request']['number'],
+            prTitle: $payload['pull_request']['title'] ?? null,
             commitSha: (string) $payload['pull_request']['head']['sha'],
             language: (string) config('ai.language'),
+            prAuthorLogin: $prAuthor['login'] ?? null,
+            prAuthorAvatarUrl: $prAuthor['avatar_url'] ?? null,
+            prAuthorGithubId: isset($prAuthor['id']) ? (int) $prAuthor['id'] : null,
         );
 
         if (! $analysis) {

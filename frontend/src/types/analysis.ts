@@ -26,8 +26,11 @@ export interface Analysis {
   status: AnalysisStatus;
   sourceType: AnalysisSource;
   prNumber: number | null;
+  prTitle: string | null;
   commitSha: string | null;
   repositoryFullName: string | null;
+  prAuthorLogin: string | null;
+  prAuthorAvatarUrl: string | null;
   score: number | null;
   summary: string | null;
   errorMessage: string | null;

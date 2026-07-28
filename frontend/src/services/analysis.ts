@@ -23,8 +23,11 @@ interface RawAnalysis {
   status: Analysis["status"];
   source_type: AnalysisSource;
   pr_number: number | null;
+  pr_title: string | null;
   commit_sha: string | null;
   repository_full_name: string | null;
+  pr_author_login: string | null;
+  pr_author_avatar_url: string | null;
   score: number | null;
   summary: string | null;
   error_message: string | null;
@@ -53,8 +56,11 @@ function mapAnalysis(raw: RawAnalysis): Analysis {
     status: raw.status,
     sourceType: raw.source_type,
     prNumber: raw.pr_number,
+    prTitle: raw.pr_title,
     commitSha: raw.commit_sha,
     repositoryFullName: raw.repository_full_name,
+    prAuthorLogin: raw.pr_author_login,
+    prAuthorAvatarUrl: raw.pr_author_avatar_url,
     score: raw.score,
     summary: raw.summary,
     errorMessage: raw.error_message,

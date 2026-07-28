@@ -76,14 +76,25 @@ function AnalysisRow({
   return (
     <li className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900">
       <button onClick={onToggle} className="flex w-full items-center justify-between gap-4 p-4 text-left">
-        <div>
-          <p className="font-mono text-sm text-neutral-100">
-            {analysis.repositoryFullName ?? "unknown repository"}
-            {analysis.prNumber && <span className="text-neutral-500"> #{analysis.prNumber}</span>}
-          </p>
-          <p className="mt-1 text-xs text-neutral-500">
-            {shortSha(analysis.commitSha)} · {new Date(analysis.createdAt).toLocaleString()}
-          </p>
+        <div className="flex min-w-0 items-start gap-3">
+          {analysis.prAuthorAvatarUrl && (
+            <img
+              src={analysis.prAuthorAvatarUrl}
+              alt={analysis.prAuthorLogin ?? "PR author"}
+              className="mt-0.5 h-9 w-9 shrink-0 rounded-full"
+            />
+          )}
+          <div className="min-w-0">
+            <p className="font-mono text-sm text-neutral-100">
+              {analysis.repositoryFullName ?? "unknown repository"}
+              {analysis.prNumber && <span className="text-neutral-500"> #{analysis.prNumber}</span>}
+            </p>
+            {analysis.prTitle && <p className="mt-0.5 truncate text-sm text-neutral-300">{analysis.prTitle}</p>}
+            <p className="mt-1 text-xs text-neutral-500">
+              {analysis.prAuthorLogin && <>{analysis.prAuthorLogin} · </>}
+              {shortSha(analysis.commitSha)} · {new Date(analysis.createdAt).toLocaleString()}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 text-sm text-neutral-400">

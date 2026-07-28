@@ -8,6 +8,7 @@ use App\Enums\AnalyzerType\AnalyzerType;
 use App\Models\Concerns\HasUuidV7;
 use App\Models\Finding\Finding;
 use App\Models\Repository\Repository;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,11 +19,16 @@ class Analysis extends Model
 
     protected $fillable = [
         'repository_id',
+        'user_id',
         'analyzer',
         'status',
         'source_type',
         'pr_number',
+        'pr_title',
         'commit_sha',
+        'pr_author_login',
+        'pr_author_avatar_url',
+        'pr_author_github_id',
         'input_code',
         'summary',
         'score',
@@ -45,6 +51,11 @@ class Analysis extends Model
     public function repository(): BelongsTo
     {
         return $this->belongsTo(Repository::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function findings(): HasMany

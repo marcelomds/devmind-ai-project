@@ -18,8 +18,17 @@ class GithubWebhookService
         private readonly GithubClient $github,
     ) {}
 
-    public function handlePullRequest(int $githubId, string $fullName, int $prNumber, string $commitSha, string $language): ?Analysis
-    {
+    public function handlePullRequest(
+        int $githubId,
+        string $fullName,
+        int $prNumber,
+        string $commitSha,
+        string $language,
+        ?string $prTitle = null,
+        ?string $prAuthorLogin = null,
+        ?string $prAuthorAvatarUrl = null,
+        ?int $prAuthorGithubId = null,
+    ): ?Analysis {
         $name = str($fullName)->afterLast('/')->toString();
 
         $repository = $this->repositories->findOrCreateByGithubId($githubId, $fullName, $name);
@@ -34,13 +43,20 @@ class GithubWebhookService
             return null;
         }
 
+        // Owner is the DevMind account that connected the repository, NOT the PR author —
+        // the webhook has no logged-in user, so ownership must come from the repository.
         $analysis = $this->analyses->create([
             'repository_id' => $repository->id,
+            'user_id' => $repository->user_id,
             'analyzer' => AnalyzerType::Quality,
             'status' => AnalysisStatus::Pending,
             'source_type' => AnalysisSource::PullRequest,
             'pr_number' => $prNumber,
+            'pr_title' => $prTitle,
             'commit_sha' => $commitSha,
+            'pr_author_login' => $prAuthorLogin,
+            'pr_author_avatar_url' => $prAuthorAvatarUrl,
+            'pr_author_github_id' => $prAuthorGithubId,
             'input_code' => $diff,
         ]);
 
