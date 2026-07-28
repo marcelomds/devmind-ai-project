@@ -6,6 +6,7 @@ use App\Enums\AnalysisSource\AnalysisSource;
 use App\Jobs\Analysis\RunAnalysis;
 use App\Models\Analysis\Analysis;
 use App\Models\Repository\Repository;
+use App\Models\User\User;
 use App\Services\Github\GithubClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -29,6 +30,11 @@ class GithubWebhookTest extends TestCase
             'pull_request' => [
                 'number' => 42,
                 'head' => ['sha' => 'abc123'],
+                'user' => [
+                    'login' => 'octocat',
+                    'id' => 583231,
+                    'avatar_url' => 'https://avatars.githubusercontent.com/u/583231',
+                ],
             ],
         ], $overrides);
     }
@@ -47,6 +53,7 @@ class GithubWebhookTest extends TestCase
 
     public function test_it_creates_an_analysis_and_dispatches_the_job_for_a_valid_signature(): void
     {
+        // No Sanctum::actingAs here — the webhook has no logged-in user and must work anonymously.
         config(['github.webhook_secret' => 'test-secret']);
         Queue::fake();
         $this->mock(GithubClient::class, function ($mock) {
@@ -60,13 +67,20 @@ class GithubWebhookTest extends TestCase
 
         $response->assertStatus(202)
             ->assertJsonPath('data.source_type', 'pull_request')
-            ->assertJsonPath('data.pr_number', 42);
+            ->assertJsonPath('data.pr_number', 42)
+            ->assertJsonPath('data.pr_author_login', 'octocat')
+            ->assertJsonPath('data.pr_author_github_id', 583231);
 
         $this->assertDatabaseCount('analyses', 1);
         $this->assertDatabaseHas('analyses', [
             'source_type' => AnalysisSource::PullRequest->value,
             'pr_number' => 42,
             'commit_sha' => 'abc123',
+            'pr_author_login' => 'octocat',
+            'pr_author_avatar_url' => 'https://avatars.githubusercontent.com/u/583231',
+            'pr_author_github_id' => 583231,
+            // Repository was created fresh by the webhook, so it has no owner yet.
+            'user_id' => null,
         ]);
         $this->assertDatabaseHas('repositories', [
             'github_id' => 123456,
@@ -74,6 +88,36 @@ class GithubWebhookTest extends TestCase
         ]);
 
         Queue::assertPushed(RunAnalysis::class, fn (RunAnalysis $job) => $job->analysis->is(Analysis::first()));
+    }
+
+    public function test_it_assigns_the_analysis_owner_from_the_connected_repository(): void
+    {
+        config(['github.webhook_secret' => 'test-secret']);
+        Queue::fake();
+        $this->mock(GithubClient::class, function ($mock) {
+            $mock->shouldReceive('fetchPullRequestDiff')
+                ->once()
+                ->with('acme/widgets', 42)
+                ->andReturn("--- a/foo.php\n+++ b/foo.php\n+echo 'hi';");
+        });
+
+        $owner = User::factory()->create();
+        Repository::create([
+            'user_id' => $owner->id,
+            'github_id' => 123456,
+            'name' => 'widgets',
+            'full_name' => 'acme/widgets',
+            'is_active' => true,
+        ]);
+
+        $response = $this->postWebhook($this->payload(), 'test-secret');
+
+        $response->assertStatus(202);
+
+        $this->assertDatabaseHas('analyses', [
+            'user_id' => $owner->id,
+            'pr_author_login' => 'octocat',
+        ]);
     }
 
     public function test_it_rejects_an_invalid_signature(): void

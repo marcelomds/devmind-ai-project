@@ -8,6 +8,8 @@ use App\Repositories\Finding\FindingRepository;
 use App\Repositories\Finding\FindingRepositoryInterface;
 use App\Repositories\Repository\RepositoryRepository;
 use App\Repositories\Repository\RepositoryRepositoryInterface;
+use App\Repositories\User\UserRepository;
+use App\Repositories\User\UserRepositoryInterface;
 use App\Services\Ai\AiProvider;
 use App\Services\Ai\AnalysisPromptBuilder;
 use App\Services\Ai\FakeAiProvider;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AnalysisRepositoryInterface::class, AnalysisRepository::class);
         $this->app->bind(FindingRepositoryInterface::class, FindingRepository::class);
         $this->app->bind(RepositoryRepositoryInterface::class, RepositoryRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
 
         $this->app->bind(GithubClient::class, function () {
             return new GithubClient((string) config('github.token'));

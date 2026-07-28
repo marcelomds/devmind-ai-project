@@ -9,6 +9,7 @@ use App\Http\Requests\Analysis\StoreAnalysisRequest;
 use App\Http\Resources\Analysis\AnalysisResource;
 use App\Services\Analysis\AnalysisService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -21,7 +22,7 @@ class AnalysisController extends Controller
     public function index(IndexAnalysisRequest $request): AnonymousResourceCollection
     {
         $analyses = $this->analysisService->getAll(
-            $request->only(['status', 'analyzer', 'source_type']),
+            [...$request->only(['status', 'analyzer', 'source_type']), 'user_id' => $request->user()->id],
             (int) $request->validated('per_page', 15),
         );
 
@@ -34,6 +35,7 @@ class AnalysisController extends Controller
             $request->validated('input_code'),
             AnalyzerType::from($request->validated('analyzer')),
             $request->validated('language'),
+            $request->user()->id,
         );
 
         return AnalysisResource::make($analysis)
@@ -41,8 +43,8 @@ class AnalysisController extends Controller
             ->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function show(string $uuid): AnalysisResource
+    public function show(Request $request, string $uuid): AnalysisResource
     {
-        return AnalysisResource::make($this->analysisService->findByUuid($uuid));
+        return AnalysisResource::make($this->analysisService->findByUuid($uuid, $request->user()->id));
     }
 }

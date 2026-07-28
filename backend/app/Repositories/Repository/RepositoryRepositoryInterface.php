@@ -11,9 +11,11 @@ interface RepositoryRepositoryInterface
 
     public function findByUuid(string $uuid): Repository;
 
-    public function all(): Collection;
+    public function forUser(int $userId): Collection;
 
     public function setActive(Repository $repository, bool $active): Repository;
+
+    public function assignUser(Repository $repository, int $userId): Repository;
 
     public function delete(Repository $repository): void;
 }

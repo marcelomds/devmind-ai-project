@@ -27,14 +27,21 @@ class RepositoryRepository implements RepositoryRepositoryInterface
         return $repository;
     }
 
-    public function all(): Collection
+    public function forUser(int $userId): Collection
     {
-        return Repository::query()->latest()->get();
+        return Repository::query()->where('user_id', $userId)->latest()->get();
     }
 
     public function setActive(Repository $repository, bool $active): Repository
     {
         $repository->update(['is_active' => $active]);
+
+        return $repository;
+    }
+
+    public function assignUser(Repository $repository, int $userId): Repository
+    {
+        $repository->update(['user_id' => $userId]);
 
         return $repository;
     }

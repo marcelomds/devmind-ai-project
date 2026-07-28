@@ -5,6 +5,7 @@ namespace App\Services\Analysis;
 use App\Enums\AnalysisSource\AnalysisSource;
 use App\Enums\AnalysisStatus\AnalysisStatus;
 use App\Enums\AnalyzerType\AnalyzerType;
+use App\Exceptions\Analysis\AnalysisNotFoundException;
 use App\Jobs\Analysis\RunAnalysis;
 use App\Models\Analysis\Analysis;
 use App\Repositories\Analysis\AnalysisRepositoryInterface;
@@ -16,9 +17,10 @@ class AnalysisService
         private readonly AnalysisRepositoryInterface $repository,
     ) {}
 
-    public function create(string $inputCode, AnalyzerType $analyzer, string $language): Analysis
+    public function create(string $inputCode, AnalyzerType $analyzer, string $language, int $userId): Analysis
     {
         $analysis = $this->repository->create([
+            'user_id' => $userId,
             'analyzer' => $analyzer,
             'source_type' => AnalysisSource::Manual,
             'status' => AnalysisStatus::Pending,
@@ -30,9 +32,15 @@ class AnalysisService
         return $analysis;
     }
 
-    public function findByUuid(string $uuid): Analysis
+    public function findByUuid(string $uuid, int $userId): Analysis
     {
-        return $this->repository->findByUuid($uuid);
+        $analysis = $this->repository->findByUuid($uuid);
+
+        if ($analysis->user_id !== $userId) {
+            throw new AnalysisNotFoundException($uuid);
+        }
+
+        return $analysis;
     }
 
     public function getAll(array $filters, int $perPage = 15): LengthAwarePaginator
