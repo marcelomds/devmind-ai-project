@@ -22,7 +22,7 @@
 
 ---
 
-> ⚠️ **Work in progress.** DevMind AI is under active development. The foundation — containerized infrastructure, versioned REST API, and a typed React frontend — is in place. Product features are being built incrementally and this README evolves with them.
+> ⚠️ **Work in progress.** DevMind AI is under active development. The core loop — connect a repo, analyze PRs via webhook, view results on a dashboard — works end to end. What's left is mostly deployment and polish, and this README evolves with the project.
 
 ---
 
@@ -62,11 +62,14 @@ It's the difference between *"help me write this function"* and *"tell me whethe
 
 It's worth separating the **vision** (above) from the **present state**, so the scope is clear.
 
-What exists and works **today** is the foundation and the skeleton — not the product features yet:
+The core product loop works **today**, end to end — connect a repo, open a PR, get an AI analysis on the dashboard:
 
-- ✅ A complete **Docker infrastructure**: ...
-- ✅ A responding **REST API** with a React screen ...
-- ✅ The **database schema** (repositories, analyses, findings, users) and an **asynchronous AI analysis engine** with a provider-agnostic layer (OpenAI + Fake driver), validated by tests running in CI.
+- ✅ A complete **Docker infrastructure** (Nginx, PHP-FPM, PostgreSQL, Redis).
+- ✅ A versioned **REST API** with a typed React + TypeScript frontend, both behind **Laravel Sanctum authentication**.
+- ✅ The **database schema** (users, repositories, analyses, findings) and an **asynchronous AI analysis engine** with a provider-agnostic layer (OpenAI + Fake driver), running on a dedicated Redis queue.
+- ✅ A signed **GitHub webhook** that turns PR opens/updates into automatic analyses, with repository connect/pause/remove management.
+- ✅ A **dashboard** with score-over-time and findings-by-severity charts, plus a history screen for both manual and PR-triggered analyses — showing the PR author's avatar, name, and title.
+- ✅ Tests and lint validated by **CI** on every push.
 
 ## 🗺️ Roadmap
 
@@ -86,21 +89,21 @@ Make the core beat: receive code (pasted manually at first), send it to the AI, 
 **Phase 2 — The Dashboard**
 Show those analyses and the quality trend on a polished screen.
 
-- [ ] Analyses list & detail views
-- [ ] Findings by severity
-- [ ] Quality-over-time chart (technical-debt trend)
+- [x] Analyses list & detail views
+- [x] Findings by severity
+- [x] Quality-over-time chart (technical-debt trend)
 
 **Phase 3 — GitHub Integration**
 Replace manual input with a real connection to Pull Requests via webhook.
 
-- [ ] GitHub webhook (signed) on PR events
-- [ ] Diff extraction & automatic analysis
-- [ ] Provider-agnostic AI layer
+- [x] GitHub webhook (signed) on PR events
+- [x] Diff extraction & automatic analysis
+- [x] Provider-agnostic AI layer
 
 **Phase 4 — Authentication & Deployment**
 Wrap it up: each user sees only their own repositories, and ship it.
 
-- [ ] Authentication (Laravel Sanctum)
+- [x] Authentication (Laravel Sanctum)
 - [x] CI pipeline with GitHub Actions (tests, lint, build)
 - [ ] Deployment to AWS (ECR → ECS/EC2)
 
