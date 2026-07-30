@@ -8,6 +8,7 @@
 # Logs
 .env
 /backend/.env
+/backend/.env.production
 /backend/vendor
 /backend/node_modules
 /frontend/node_modules
