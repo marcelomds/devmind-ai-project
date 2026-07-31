@@ -88,7 +88,7 @@ nginx serves the output straight off disk via the `./frontend/dist` mount in
    - Or build on the Mac and ship `dist/` to the EC2 instead:
      ```
      cd frontend && npm ci && npm run build
-     rsync -avz --delete dist/ ec2-user@REPLACED_IP:~/devmind-ai-project/frontend/dist/
+     rsync -avz --delete dist/ ec2-user@EC2_PUBLIC_IP:~/devmind-ai-project/frontend/dist/
      ```
 
 3. Recreate/reload nginx to pick up the mounted `dist/` and the new
@@ -108,11 +108,11 @@ nginx serves the output straight off disk via the `./frontend/dist` mount in
    docker compose -f docker-compose.prod.yml exec app php artisan config:cache
    ```
 
-5. Test in a browser: open `http://REPLACED_IP/` — the React app loads.
-   Check the Network tab: API calls go to `http://REPLACED_IP/api/v1/...`
+5. Test in a browser: open `http://EC2_PUBLIC_IP/` — the React app loads.
+   Check the Network tab: API calls go to `http://EC2_PUBLIC_IP/api/v1/...`
    and return 200, no CORS errors. Confirm the backend didn't regress:
    ```
-   curl -I http://REPLACED_IP/api/v1/health
+   curl -I http://EC2_PUBLIC_IP/api/v1/health
    ```
    Expect `200`.
 
@@ -129,5 +129,5 @@ nginx serves the output straight off disk via the `./frontend/dist` mount in
   the build ran and `docker-compose.prod.yml` mounts
   `./frontend/dist:/usr/share/nginx/html:ro` on the `nginx` service.
 - **CORS error in browser console** — `backend/config/cors.php` missing
-  `http://REPLACED_IP` in `allowed_origins`, or config cache stale. Re-run
+  `http://EC2_PUBLIC_IP` in `allowed_origins`, or config cache stale. Re-run
   `php artisan config:cache` after editing.
