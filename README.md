@@ -22,7 +22,7 @@
 
 ---
 
-> ⚠️ **Work in progress.** DevMind AI is under active development. The core loop — connect a repo, analyze PRs via webhook, view results on a dashboard — works end to end. What's left is mostly deployment and polish, and this README evolves with the project.
+> ⚠️ **Work in progress.** DevMind AI is under active development. The core loop — connect a repo, analyze PRs via webhook, view results on a dashboard — works end to end and is **deployed to production** on AWS EC2. What's left is mostly polish, and this README evolves with the project.
 
 ---
 
@@ -70,6 +70,7 @@ The core product loop works **today**, end to end — connect a repo, open a PR,
 - ✅ A signed **GitHub webhook** that turns PR opens/updates into automatic analyses, with repository connect/pause/remove management.
 - ✅ A **dashboard** with score-over-time and findings-by-severity charts, plus a history screen for both manual and PR-triggered analyses — showing the PR author's avatar, name, and title.
 - ✅ Tests and lint validated by **CI** on every push.
+- ✅ **Deployed to production** on a single AWS EC2 instance — Nginx serves the built frontend and reverse-proxies the API from the same origin.
 
 ## 🗺️ Roadmap
 
@@ -105,7 +106,7 @@ Wrap it up: each user sees only their own repositories, and ship it.
 
 - [x] Authentication (Laravel Sanctum)
 - [x] CI pipeline with GitHub Actions (tests, lint, build)
-- [ ] Deployment to AWS (ECR → ECS/EC2)
+- [x] Deployment to AWS EC2 (Docker Compose + Nginx serving API and frontend build)
 
 ---
 
@@ -145,8 +146,8 @@ The frontend runs on the host for instant HMR and talks to the API over HTTP. In
 | **Web Server**   | Nginx                                                   |
 | **Containers**   | Docker · Docker Compose                                 |
 | **AI**           | OpenAI (provider-agnostic architecture)                |
-| **Infra**        | AWS (ECR, EC2, ECS, S3) · *planned*                    |
-| **CI/CD**        | GitHub Actions · *planned*                             |
+| **Infra**        | AWS EC2 · Docker Compose · Nginx                       |
+| **CI/CD**        | GitHub Actions                                         |
 
 ---
 
@@ -220,6 +221,12 @@ npm run dev
 | Frontend     | http://localhost:5173            |
 | API          | http://localhost:8080/api/v1     |
 | Health check | http://localhost:8080/api/v1/health |
+
+---
+
+## 🚢 Deployment
+
+The app runs in production on a single AWS EC2 instance: Nginx roots the built SPA at `/` and proxies `/api`, `/sanctum`, and `.php` requests to the Laravel app on the same origin. See [`DEPLOY.md`](./DEPLOY.md) for the full setup (Docker Compose, environment files, build/ship steps).
 
 ---
 
