@@ -17,7 +17,10 @@ return [
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-    'allowed_origins' => ['http://localhost:5173', 'http://REPLACED_IP'],
+    'allowed_origins' => array_filter([
+        'http://localhost:5173',
+        env('FRONTEND_URL'),
+    ]),
 
     'allowed_methods' => ['*'],
     

@@ -208,7 +208,19 @@ docker compose exec php php artisan key:generate
 docker compose exec php php artisan migrate
 ```
 
-### 5. Start the frontend
+By default `AI_PROVIDER` is `openai`, which needs a real `OPENAI_API_KEY` in `backend/.env`. To try DevMind without one, set `AI_PROVIDER=fake` instead — it returns deterministic sample findings so you can see the full pipeline work end to end.
+
+### 5. Start the queue worker
+
+Analyses run asynchronously — without this, they'll stay stuck on `pending` forever:
+
+```bash
+docker compose exec php php artisan queue:work --queue=analysis
+```
+
+Leave this running in its own terminal.
+
+### 6. Start the frontend
 
 ```bash
 cd frontend

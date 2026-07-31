@@ -20,7 +20,7 @@ React SPA and the Laravel API.
    - `DB_HOST` → RDS endpoint
    - `DB_PASSWORD` → RDS password
    - `OPENAI_API_KEY`
-   - `APP_URL` / `SANCTUM_STATEFUL_DOMAINS` → EC2 public IP
+   - `APP_URL` / `FRONTEND_URL` / `SANCTUM_STATEFUL_DOMAINS` → EC2 public IP (or your domain)
 
 3. Build and start the stack:
    ```
