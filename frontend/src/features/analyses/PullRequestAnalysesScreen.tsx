@@ -18,7 +18,7 @@ export function PullRequestAnalysesScreen() {
   const { analyses, loading, error, refresh, expandedUuid, toggleExpand } = usePullRequestAnalyses();
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-16">
+    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-10">
       <header className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium uppercase tracking-wider text-indigo-400">DevMind AI</p>

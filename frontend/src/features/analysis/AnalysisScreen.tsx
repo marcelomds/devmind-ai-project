@@ -28,7 +28,7 @@ export function AnalysisScreen() {
   }
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-16">
+    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-10">
       <header>
         <p className="text-sm font-medium uppercase tracking-wider text-indigo-400">DevMind AI</p>
         <h1 className="mt-1 text-3xl font-semibold">New analysis</h1>

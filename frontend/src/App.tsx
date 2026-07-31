@@ -51,16 +51,16 @@ function App() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-4 border-b border-neutral-800 bg-neutral-900/80 px-6 py-3 backdrop-blur">
-        <div className="flex items-center gap-6">
+      <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between gap-6 border-b border-neutral-800 bg-neutral-900/80 px-8 backdrop-blur">
+        <div className="flex items-center gap-8">
           <span className="text-sm font-semibold tracking-wide text-indigo-400">DevMind AI</span>
 
-          <nav className="flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-950/60 p-1 text-xs">
+          <nav className="flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-950/60 p-1.5 text-sm">
             {TABS.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setTab(option.value)}
-                className={`rounded-full px-3 py-1.5 font-medium transition ${
+                className={`rounded-full px-4 py-2 font-medium transition ${
                   tab === option.value
                     ? "bg-indigo-500 text-white"
                     : "text-neutral-400 hover:text-neutral-200"
@@ -72,7 +72,7 @@ function App() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-950/60 px-3 py-1.5">
             <span className={`h-2 w-2 rounded-full ${config.dot} animate-pulse`} />
             <span className="text-neutral-400">{config.label}</span>
@@ -90,10 +90,12 @@ function App() {
         </div>
       </header>
 
-      {tab === "analyze" && <AnalysisScreen />}
-      {tab === "repositories" && <RepositoriesScreen />}
-      {tab === "pr-analyses" && <PullRequestAnalysesScreen />}
-      {tab === "dashboard" && <DashboardScreen />}
+      <div className="pt-16">
+        {tab === "analyze" && <AnalysisScreen />}
+        {tab === "repositories" && <RepositoriesScreen />}
+        {tab === "pr-analyses" && <PullRequestAnalysesScreen />}
+        {tab === "dashboard" && <DashboardScreen />}
+      </div>
     </div>
   );
 }
