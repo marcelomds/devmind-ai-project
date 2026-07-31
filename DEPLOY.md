@@ -1,7 +1,8 @@
-# Deploy — Backend on EC2
+# Deploy — DevMind on EC2
 
-Runbook to run the DevMind backend in production on the EC2 host. Database is
-RDS (managed, not a container). Frontend deploy is a later step — not covered here.
+Runbook to run the DevMind backend and frontend in production on the EC2 host.
+Database is RDS (managed, not a container). Single nginx serves both the
+React SPA and the Laravel API.
 
 ## Steps
 
@@ -56,6 +57,65 @@ RDS (managed, not a container). Frontend deploy is a later step — not covered 
 9. The `worker` service already runs `php artisan queue:work` and picks up
    queued analyses automatically — no manual step needed.
 
+## Frontend
+
+Build is static — no node/vite container. Build on host (or Mac, see fallback),
+nginx serves the output straight off disk via the `./frontend/dist` mount in
+`docker-compose.prod.yml`.
+
+1. Pull latest code on the EC2 (skip if just done in step 1 above):
+   ```
+   git pull
+   ```
+
+2. Build the frontend on the EC2. `frontend/.env.production` is committed and
+   picked up automatically by `vite build`:
+   ```
+   cd frontend && npm ci && npm run build
+   cd ..
+   ```
+   Output lands in `frontend/dist`.
+
+   **Low-RAM caveat (1 GB instance):** `npm run build` can get OOM-killed. Two
+   options:
+   - Add 2 GB swap once, then retry the build:
+     ```
+     sudo fallocate -l 2G /swapfile
+     sudo chmod 600 /swapfile
+     sudo mkswap /swapfile
+     sudo swapon /swapfile
+     ```
+   - Or build on the Mac and ship `dist/` to the EC2 instead:
+     ```
+     cd frontend && npm ci && npm run build
+     rsync -avz --delete dist/ ec2-user@REPLACED_IP:~/devmind-ai-project/frontend/dist/
+     ```
+
+3. Recreate/reload nginx to pick up the mounted `dist/` and the new
+   `docker/nginx/prod.conf`:
+   ```
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+   If only `prod.conf` changed and `dist/` is already in place, a lighter
+   reload works too:
+   ```
+   docker compose -f docker-compose.prod.yml restart nginx
+   ```
+
+4. CORS changed (`backend/config/cors.php`) — clear the cached config so
+   Laravel picks it up:
+   ```
+   docker compose -f docker-compose.prod.yml exec app php artisan config:cache
+   ```
+
+5. Test in a browser: open `http://REPLACED_IP/` — the React app loads.
+   Check the Network tab: API calls go to `http://REPLACED_IP/api/v1/...`
+   and return 200, no CORS errors. Confirm the backend didn't regress:
+   ```
+   curl -I http://REPLACED_IP/api/v1/health
+   ```
+   Expect `200`.
+
 ## Troubleshooting
 
 - **502 Bad Gateway** — app/php not reachable. Check `docker compose -f docker-compose.prod.yml ps`
@@ -63,3 +123,11 @@ RDS (managed, not a container). Frontend deploy is a later step — not covered 
   the `app` service name.
 - **DB connection error** — check `DB_HOST`/`DB_PASSWORD` in `backend/.env`, and confirm
   the RDS security group allows inbound 5432 from the EC2 instance's security group.
+- **Frontend build killed / `npm run build` exits with no output** — OOM on the
+  1 GB instance. Add swap or build on the Mac, see the Frontend section above.
+- **Blank page or 404 on `/`** — `frontend/dist` empty or not mounted. Confirm
+  the build ran and `docker-compose.prod.yml` mounts
+  `./frontend/dist:/usr/share/nginx/html:ro` on the `nginx` service.
+- **CORS error in browser console** — `backend/config/cors.php` missing
+  `http://REPLACED_IP` in `allowed_origins`, or config cache stale. Re-run
+  `php artisan config:cache` after editing.
