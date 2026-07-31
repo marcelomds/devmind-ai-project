@@ -18,7 +18,7 @@ class AnalysisRepository implements AnalysisRepositoryInterface
 
     public function findByUuid(string $uuid): Analysis
     {
-        $analysis = Analysis::with('findings')->where('uuid', $uuid)->first();
+        $analysis = Analysis::with(['findings', 'repository'])->where('uuid', $uuid)->first();
 
         if (! $analysis) {
             throw new AnalysisNotFoundException($uuid);
